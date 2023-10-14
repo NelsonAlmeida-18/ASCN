@@ -1,0 +1,13 @@
+# Shared Swap database settings
+db_name: swap 
+db_user: teste
+#Careful this should be using VAULT!!!!
+db_password: 123456 
+# bind ip for DB - Using Inventory file content
+db_ip: 192.168.56.101
+# client ip - Using Inventory file content
+user_ip: 192.168.56.102
+#DB settings
+db_packages:
+  - mysql-server
+  - python3-mysqldb

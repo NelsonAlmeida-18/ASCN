@@ -1,0 +1,12 @@
+---
+- name: DB install and start
+  hosts: db 
+  become: yes
+  roles:
+    - db
+
+- name: App install and start
+  hosts: app
+  become: yes
+  roles: 
+    - app

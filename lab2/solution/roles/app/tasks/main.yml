@@ -1,0 +1,74 @@
+
+- name: Install Swap from git
+  git:
+    repo: https://github.com/Hackathonners/swap.git
+    dest: /home/vagrant/swap/
+    clone: yes
+    update: yes
+
+- name: Add PHP repository to apt-install
+  ansible.builtin.apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+    update_cache: true
+
+- name: Install PHP 7.4 and all its dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ php_packages }}"
+
+- name: Install NodeJs
+  ansible.builtin.apt:
+    name:
+      - nodejs
+    state: present
+
+- name: Install Composer
+  ansible.builtin.apt:
+    name:
+      - composer
+    state: present
+
+- name: Install npm
+  ansible.builtin.apt:
+    name:
+      - npm
+    state: present
+
+- name: Composer install Swap
+  community.general.composer:
+    command: install
+    working_dir: /home/vagrant/swap/
+  
+- name: Install npm
+  community.general.npm: 
+    path: /home/vagrant/swap/ 
+  
+
+- name: Create .env file
+  template: 
+    src: env_example.j2
+    dest: /home/vagrant/swap/.env
+
+- name: Generate application's key
+  ansible.builtin.shell: "php artisan key:generate"
+  args: 
+    chdir: /home/vagrant/swap/ 
+
+- name: Run database migrations
+  ansible.builtin.shell: "php artisan migrate"
+  args: 
+    chdir: /home/vagrant/swap/ 
+
+- name: Seed the database
+  ansible.builtin.shell:  "php artisan db:seed"
+  args: 
+    chdir: /home/vagrant/swap/ 
+
+- name: Start Swap
+  ansible.builtin.shell: "nohup php artisan serve --host=0.0.0.0 > app_out.log 2>&1 &"
+  args: 
+    chdir: /home/vagrant/swap/ 
+## Usamos nohup php artisan serve --host=0.0.0.0 > app_out.log 2>&1 & ao invés de ~/Swap/ php artisan serve --host=0.0.0.0
+## pois permite que a tarefa "pare de correr" mas mantém ativa na máquina e assim o nosso ansible termina
