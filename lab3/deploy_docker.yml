@@ -1,0 +1,70 @@
+---
+
+- name: Install docker in Server1
+  hosts: all
+  become: true
+  vars:
+    sample_app_dir: "/home/sample_app/"
+
+  tasks:
+    - name: Install Docker via Docker.io
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Install Dependencies
+      ansible.builtin.apt:
+        name: docker
+        state: present
+
+    - name: Add docker to groups
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: Vagrant
+        groups: docker
+        append: yes
+
+    - name: Get the App
+      ansible.builtin.git:
+        repo: https://github.com/docker/getting-started-app.git
+        dest: "{{ sample_app_dir }}"
+        clone: yes
+
+    - name: Write the Dockerfile
+      template:
+        src: template_docker.j2
+        dest: "{{ sample_app_dir }}/Dockerfile"
+
+    - name: Build the Docker image
+      ansible.builtin.shell:
+        cmd: docker build -t getting-started "{{ sample_app_dir }}"
+      become: yes
+
+    - name: Run Docker app
+      ansible.builtin.shell:
+        cmd: docker run -d -p 127.0.0.1:3000:3000 getting-started
+      become: yes
+
+    #Build the Docker Image
+    #- name: Build the docker image
+    #  community.docker.docker_image:
+    #    name: getting-started
+    #    build:
+    #      path: "{{ sample_app_dir }}"
+    #    source: build
+
+
+    #- name: Run Docker container
+    # community.docker.docker_container:
+    #    name: getting-started-app
+    #    image: getting-started
+    #    ports:
+    #      - "3000:3000"
+    #    detach: yes
+    #  become: yes
+
+      
